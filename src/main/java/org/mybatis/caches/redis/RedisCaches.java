@@ -41,8 +41,10 @@ public final class RedisCaches implements Cache {
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
   private String id;
+  
+  private byte[] idBytes;
 
-  private RedisConnectionFactory factory;
+  private static RedisConnectionFactory factory;
 
   private boolean cluster = false;
 
@@ -53,6 +55,7 @@ public final class RedisCaches implements Cache {
       throw new IllegalArgumentException("Cache instances require an ID");
     }
     this.id = id;
+    this.idBytes = id.getBytes();
   }
 
   private <T> T execute(RedisCallback<T> callback) {
@@ -100,14 +103,13 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Object doInRedis(RedisConnection conn) {
-        final byte[] idBytes = id.getBytes();
         final byte[] keyBytes = key.toString().getBytes();
         conn.hSet(idBytes, keyBytes, SerializeUtil.serialize(value));
         if (timeout != null && conn.ttl(idBytes) == -1) {
           conn.expire(idBytes, timeout);
         }
         if (log.isDebugEnabled()) {
-          log.debug("get: {}.{}, {}", idBytes, keyBytes, value);
+          log.debug("put: {}-{}, {}", id, key, value);
         }
         return null;
       }
@@ -120,11 +122,10 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Object doInRedis(RedisConnection conn) {
-        final byte[] idBytes = id.getBytes();
         final byte[] keyBytes = key.toString().getBytes();
         Object result = SerializeUtil.unserialize(conn.hGet(idBytes, keyBytes));
         if (log.isDebugEnabled()) {
-          log.debug("get: {}.{}, {}", idBytes, keyBytes, result);
+          log.debug("get: {}-{}, {}", id, key, result);
         }
         return result;
       }
@@ -137,11 +138,10 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Long doInRedis(RedisConnection conn) {
-        final byte[] idBytes = id.getBytes();
         final byte[] keyBytes = key.toString().getBytes();
         Long l = conn.hDel(idBytes, keyBytes);
         if (log.isDebugEnabled()) {
-          log.debug("del: {}.{}, {}", idBytes, keyBytes, l);
+          log.debug("del: {}-{}, {}", id, key, l);
         }        
         return l;
       }
@@ -154,7 +154,7 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Object doInRedis(RedisConnection conn) {
-        conn.del(id.getBytes());
+        conn.del(idBytes);
         return null;
       }
     });
@@ -181,6 +181,7 @@ public final class RedisCaches implements Cache {
     return factory;
   }
 
+  @SuppressWarnings("static-access")
   public void setFactory(RedisConnectionFactory factory) {
     this.factory = factory;
   }
@@ -196,5 +197,9 @@ public final class RedisCaches implements Cache {
   public Integer getTimeout() {
     return timeout;
   }
-
+  
+  public static void setRedisConnectionFactory(RedisConnectionFactory factory) {
+    RedisCaches.factory = factory;
+  }
+  
 }
