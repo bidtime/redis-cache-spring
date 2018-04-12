@@ -31,11 +31,11 @@ public final class RedisTestCase {
 
   private static final String DEFAULT_ID = "REDIS";
 
-  private static RedisCache cache;
+  private static RedisCaches cache;
 
   @BeforeClass
   public static void newCache() {
-    cache = new RedisCache(DEFAULT_ID);
+    cache = new RedisCaches(DEFAULT_ID);
   }
 
   @Test
@@ -68,7 +68,7 @@ public final class RedisTestCase {
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldNotCreateCache() {
-    cache = new RedisCache(null);
+    cache = new RedisCaches(null);
   }
 
   @Test

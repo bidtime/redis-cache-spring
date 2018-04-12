@@ -27,11 +27,11 @@
   </parent>
 
   <groupId>org.mybatis.caches</groupId>
-  <artifactId>mybatis-redis</artifactId>
-  <version>1.0.0-beta3-SNAPSHOT</version>
+  <artifactId>mybatis-redis-spring</artifactId>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
-  <name>mybatis-redis</name>
+  <name>mybatis-redis-spring</name>
   <description>Redis support for MyBatis Cache</description>
   <url>https://github.com/mybatis/redis-cache</url>
 
@@ -95,6 +95,12 @@
       <version>4.0.1</version>
       <scope>compile</scope>
       <optional>true</optional>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-redis</artifactId>
+      <version>2.0.6.RELEASE</version>
     </dependency>
 
     <!--
