@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+  xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+<!--
+  <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <property name="maxIdle" value="${spring.redis.maxIdle}"/>
+    <property name="maxTotal" value="${spring.redis.maxActive}"/>
+    <property name="maxWaitMillis" value="${spring.redis.maxWait}"/>
+    <property name="testOnBorrow" value="${spring.redis.testOnBorrow}"/>
+  </bean>
+  
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+    p:host-name="${spring.redis.host}" p:port="${spring.redis.port}" p:password="${spring.redis.password}"
+    p:pool-config-ref="poolConfig"/>
+    
+  <bean id="redisCacheTransfer" class="com.wedo.stream.cache.RedisCacheTransfer">
+    <property name="jedisConnectionFactory" ref="jedisConnectionFactory"/>
+  </bean>
+-->
+
+  <context:property-placeholder location="classpath:redis.properties" ignore-unresolvable="true" />
+
+  <!-- 配置redis部分 start -->
+
+  <bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <property name="maxIdle" value="${redis.maxIdle}"/>
+    <property name="maxTotal" value="${redis.maxTotal}"/>
+    <property name="maxWaitMillis" value="${redis.maxWait}" />  
+    <property name="testOnBorrow" value="${redis.testOnBorrow}" />  
+    <property name="testOnReturn" value="${redis.testOnReturn}" />  
+  </bean>
+
+  <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+    <property name="hostName" value="${redis.hosts}"></property>
+    <property name="port" value="${redis.port}"></property>
+    <property name="poolConfig" ref="poolConfig"></property>
+  </bean>
+
+  <bean id="redisCacheTransfer" class="org.mybatis.caches.redis.RedisCacheTransfer">
+    <property name="redisConnectionFactory" ref="jedisConnectionFactory"/>
+    <!-- redis 服务器是否使用集群 -->
+    <property name="cluster" value="false"/>
+  </bean>
+
+</beans>
