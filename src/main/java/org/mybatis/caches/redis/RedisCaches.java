@@ -104,12 +104,12 @@ public final class RedisCaches implements Cache {
       @Override
       public Object doInRedis(RedisConnection conn) {
         final byte[] keyBytes = key.toString().getBytes();
-        conn.hSet(idBytes, keyBytes, SerializeUtil.serialize(value));
+        Boolean success = conn.hSet(idBytes, keyBytes, SerializeUtil.serialize(value));
         if (timeout != null && conn.ttl(idBytes) == -1) {
           conn.expire(idBytes, timeout);
         }
         if (log.isDebugEnabled()) {
-          log.debug("put: {}-{}, {}", id, key, value);
+          log.debug("put: {}-{}, {}", id, key, success);
         }
         return null;
       }
@@ -125,7 +125,7 @@ public final class RedisCaches implements Cache {
         final byte[] keyBytes = key.toString().getBytes();
         Object result = SerializeUtil.unserialize(conn.hGet(idBytes, keyBytes));
         if (log.isDebugEnabled()) {
-          log.debug("get: {}-{}, {}", id, key, result);
+          log.debug("get: {}-{}, {}", id, key, (result == null) ? null : result.toString());
         }
         return result;
       }
@@ -141,7 +141,7 @@ public final class RedisCaches implements Cache {
         final byte[] keyBytes = key.toString().getBytes();
         Long l = conn.hDel(idBytes, keyBytes);
         if (log.isDebugEnabled()) {
-          log.debug("del: {}-{}, {}", id, key, l);
+          log.debug("del: {}-{}, {}", id, key, (l == null) ? null : l);
         }        
         return l;
       }
