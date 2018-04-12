@@ -15,6 +15,7 @@
  */
 package org.mybatis.caches.redis;
 
+import java.util.Collection;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -28,7 +29,7 @@ import org.springframework.data.redis.core.RedisCallback;
 /**
  * 本源码摘自 mybatis-redis 项目，并加以改造
  * 
- * 项目地址：https://github.com/mybatis/redis-cache.git
+ * 项目 mybatis-redis 地址：https://github.com/mybatis/redis-cache.git
  * 
  * Cache adapter for Redis.
  *
@@ -44,9 +45,15 @@ public final class RedisCaches implements Cache {
   
   private byte[] idBytes;
 
+  /**
+   * 与 spring-data-redis 的 RedisConnectionFactory，结合使用
+   */
   private static RedisConnectionFactory factory;
 
-  private boolean cluster = false;
+  /*
+   * redis 服务器 是否使用集群
+   */
+  private static boolean cluster = false;
 
   private Integer timeout;
 
@@ -56,6 +63,7 @@ public final class RedisCaches implements Cache {
     }
     this.id = id;
     this.idBytes = id.getBytes();
+    clear();
   }
 
   private <T> T execute(RedisCallback<T> callback) {
@@ -68,6 +76,10 @@ public final class RedisCaches implements Cache {
       }
     } catch (Exception e) {
       log.error("get connection: {}, {}", e.getMessage(), e.getStackTrace());
+      return null;
+    }
+    
+    if (conn == null) {
       return null;
     }
 
@@ -101,15 +113,29 @@ public final class RedisCaches implements Cache {
   public void putObject(final Object key, final Object value) {
     execute(new RedisCallback<Object>() {
 
+      @SuppressWarnings("rawtypes")
       @Override
       public Object doInRedis(RedisConnection conn) {
+        Boolean success = null;
         final byte[] keyBytes = key.toString().getBytes();
-        Boolean success = conn.hSet(idBytes, keyBytes, SerializeUtil.serialize(value));
+        byte[] dataBytes = null;
+        if (value != null) {
+          dataBytes = SerializeUtil.serialize(value);
+        }
+        success = conn.hSet(idBytes, keyBytes, dataBytes);
         if (timeout != null && conn.ttl(idBytes) == -1) {
           conn.expire(idBytes, timeout);
         }
         if (log.isDebugEnabled()) {
-          log.debug("put: {}-{}, {}", id, key, success);
+          if (value != null) {
+            if (value instanceof Collection) {
+              log.debug("put: {}-{}, {}:size({})", id, key, success, ((Collection)value).size());
+            } else {
+              log.debug("put: {}-{}, {}", id, key, success);
+            }
+          } else {
+            log.debug("put: {}-{}, {}", id, key, success);
+          }
         }
         return null;
       }
@@ -120,12 +146,28 @@ public final class RedisCaches implements Cache {
   public Object getObject(final Object key) {
     return execute(new RedisCallback<Object>() {
 
+      @SuppressWarnings("rawtypes")
       @Override
       public Object doInRedis(RedisConnection conn) {
         final byte[] keyBytes = key.toString().getBytes();
-        Object result = SerializeUtil.unserialize(conn.hGet(idBytes, keyBytes));
+        Object result = null;
+        final byte[] dataBytes = conn.hGet(idBytes, keyBytes);
+        if (dataBytes != null) {
+          result = SerializeUtil.unserialize(dataBytes);
+        }
         if (log.isDebugEnabled()) {
-          log.debug("get: {}-{}, {}", id, key, (result == null) ? null : result.toString());
+          log.debug("get: {}-{}, {}", id, key, (result == null) ? null : result.getClass().getName());
+        }
+        if (log.isDebugEnabled()) {
+          if (result != null) {
+            if (result instanceof Collection) {
+              log.debug("get: {}-{}, {}:size({})", id, key, result.getClass().getName(), ((Collection)result).size());
+            } else {
+              log.debug("get: {}-{}, {}", id, key, result.getClass().getName());
+            }
+          } else {
+            log.debug("get: {}-{}, {}: is null", id, key, (result == null) ? null : result.getClass().getName());
+          }
         }
         return result;
       }
@@ -154,7 +196,13 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Object doInRedis(RedisConnection conn) {
-        conn.del(idBytes);
+        if (conn == null) {
+          return null;
+        }
+        Long l = conn.del(idBytes);
+        if (log.isDebugEnabled()) {
+          log.debug("clear: {}, {}", id, (l == null) ? null : l);
+        }        
         return null;
       }
     });
@@ -190,8 +238,9 @@ public final class RedisCaches implements Cache {
     return cluster;
   }
 
-  public void setCluster(boolean cluster) {
-    this.cluster = cluster;
+  public static void setCluster(boolean cluster) {
+    log.debug("set cluster: {}", cluster);
+    RedisCaches.cluster = cluster;
   }
 
   public Integer getTimeout() {
@@ -199,6 +248,7 @@ public final class RedisCaches implements Cache {
   }
   
   public static void setRedisConnectionFactory(RedisConnectionFactory factory) {
+    log.debug("factory: {}", factory.getClass().getName());
     RedisCaches.factory = factory;
   }
   

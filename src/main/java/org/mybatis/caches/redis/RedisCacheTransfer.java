@@ -10,4 +10,9 @@ public class RedisCacheTransfer {
     RedisCaches.setRedisConnectionFactory(factory);
   }
 
+  @Autowired
+  public void setCluster(boolean cluster) {
+    RedisCaches.setCluster(cluster);
+  }
+
 }
