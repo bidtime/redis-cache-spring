@@ -19,11 +19,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <!--
   <parent>
     <groupId>org.mybatis</groupId>
     <artifactId>mybatis-parent</artifactId>
     <version>30</version>
     <relativePath />
+  </parent>
+  -->
+  <parent>
+    <groupId>com.ecarpo.parent</groupId>
+    <artifactId>ecarpo-parent</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
   </parent>
 
   <groupId>org.mybatis.caches</groupId>
@@ -33,124 +40,145 @@
 
   <name>mybatis-redis-spring</name>
   <description>Redis support for MyBatis Cache</description>
+  <!--
   <url>https://github.com/mybatis/redis-cache</url>
+  -->
+	
+	<properties>
+		<!--
+		<fastjson.version>1.2.17</fastjson.version>
+		<cache-manager.version>1.0.1</cache-manager.version>
+		<commons-lang3.version>3.5</commons-lang3.version>
+		-->
 
-  <inceptionYear>2015</inceptionYear>
+		<commons-lang.version>2.6</commons-lang.version>
+		<log4j.version>1.2.17</log4j.version>
+		<!--
+		<slf4j.version>1.7.12</slf4j.version>
+		-->
+		<slf4j-log4j12.version>1.7.12</slf4j-log4j12.version>
 
-  <scm>
-    <url>http://github.com/mybatis/redis-cache</url>
-    <connection>scm:git:ssh://github.com/mybatis/redis-cache.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/mybatis/redis-cache.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
-  <issueManagement>
-    <system>GitHub Issue Management</system>
-    <url>https://github.com/mybatis/redis-cache/issues</url>
-  </issueManagement>
-  <ciManagement>
-    <system>Travis CI</system>
-    <url>https://travis-ci.org/mybatis/redis-cache</url>
-  </ciManagement>
-  <distributionManagement>
-    <site>
-      <id>gh-pages</id>
-      <name>Mybatis GitHub Pages</name>
-      <url>git:ssh://git@github.com/mybatis/redis-cache.git?gh-pages#</url>
-    </site>
-  </distributionManagement>
+		<!--
+		<junit.version>4.12</junit.version>
+		<mybatis.version>3.4.5</mybatis.version>
+		<spring-data-redis.version>2.0.6.RELEASE</spring-data-redis.version>
+	    <jedis.version>2.9.0</jedis.version>
+	    -->
 
-  <properties>
-    <clirr.comparisonVersion>1.0.3</clirr.comparisonVersion>
-    <findbugs.onlyAnalyze>org.mybatis.caches.redis.*</findbugs.onlyAnalyze>
-    <gcu.product>Cache</gcu.product>
-  </properties>
+	</properties>
 
-  <dependencies>
-    <!--
-     | Provided dependencies
-    -->
-    <dependency>
-      <groupId>org.mybatis</groupId>
-      <artifactId>mybatis</artifactId>
-      <version>3.4.5</version>
-      <scope>provided</scope>
-    </dependency>
+	<dependencies>
+		<!-- json -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>${fastjson.version}</version>
+			<scope>test</scope>
+		</dependency>
 
-    <!--
-     | compile dependencies
-    -->
-    <dependency>
-      <groupId>redis.clients</groupId>
-      <artifactId>jedis</artifactId>
-      <version>2.9.0</version>
-      <scope>compile</scope>
-    </dependency>
-    
-    <!--
-     | kryo dependencies
-    -->
-    <dependency>
-      <groupId>com.esotericsoftware</groupId>
-      <artifactId>kryo</artifactId>
-      <version>4.0.1</version>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.springframework.data</groupId>
-      <artifactId>spring-data-redis</artifactId>
-      <version>2.0.6.RELEASE</version>
-    </dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>${commons-lang.version}</version>
+		</dependency>
 
-    <!--
-     | trick to fix javadoc generation
-    -->
-    <dependency>
-      <groupId>javax.transaction</groupId>
-      <artifactId>transaction-api</artifactId>
-      <version>1.1</version>
-      <scope>provided</scope>
-    </dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
 
-    <!--
-     | test dependencies
-    -->
-    <dependency>
-      <groupId>org.junit.vintage</groupId>
-      <artifactId>junit-vintage-engine</artifactId>
-      <version>4.12.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.25</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
 
-  <profiles>
-    <profile>
-      <id>noTest</id>
-      <activation>
-        <property>
-          <name>noTest</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j-log4j12.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis -->
+		<dependency>
+		    <groupId>org.springframework.data</groupId>
+		    <artifactId>spring-data-redis</artifactId>
+		    <version>${spring-data-redis.version}</version>
+		</dependency>
+		
+	    <dependency>
+	      <groupId>redis.clients</groupId>
+	      <artifactId>jedis</artifactId>
+	      <version>${jedis.version}</version>
+	      <scope>compile</scope>
+	    </dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
+		<dependency>
+		    <groupId>org.mybatis</groupId>
+		    <artifactId>mybatis</artifactId>
+		    <version>${mybatis.version}</version>
+		</dependency>
+		
+		<!--
+		<dependency>
+		  <groupId>org.mybatis.caches</groupId>
+		  <artifactId>mybatis-redis</artifactId>
+		  <version>1.0.0-beta2</version>
+		</dependency>
+		-->
+  		
+		<!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+		<!--
+		<dependency>
+		    <groupId>redis.clients</groupId>
+		    <artifactId>jedis</artifactId>
+		    <version>2.9.0</version>
+		</dependency>
+		-->
+
+		<!--
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${}</version>
+		</dependency>
+		-->
+
+		<!--
+		<dependency>
+			<groupId>net.spy</groupId>
+			<artifactId>spymemcached</artifactId>
+			<version>2.12.0</version>
+		</dependency>
+		-->
+		
+		<!--
+		<dependency>
+			<groupId>org.bidtime.utils</groupId>
+			<artifactId>cache-manager</artifactId>
+			<version>${cache-manager.version}</version>
+		</dependency>
+		-->
+
+		<!--
+		<dependency>
+			<groupId>com.googlecode.xmemcached</groupId>
+			<artifactId>xmemcached</artifactId>
+			<version>2.0.0</version>
+		</dependency>
+		-->
+
+	</dependencies>
+
 
 </project>
+  

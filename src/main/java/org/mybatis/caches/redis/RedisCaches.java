@@ -55,7 +55,6 @@ public final class RedisCaches implements Cache {
     this.id = id;
   }
 
-  // TODO Review this is UNUSED
   private <T> T execute(RedisCallback<T> callback) {
     RedisConnection conn = null;
     try {
@@ -102,9 +101,13 @@ public final class RedisCaches implements Cache {
       @Override
       public Object doInRedis(RedisConnection conn) {
         final byte[] idBytes = id.getBytes();
-        conn.hSet(idBytes, key.toString().getBytes(), SerializeUtil.serialize(value));
+        final byte[] keyBytes = key.toString().getBytes();
+        conn.hSet(idBytes, keyBytes, SerializeUtil.serialize(value));
         if (timeout != null && conn.ttl(idBytes) == -1) {
           conn.expire(idBytes, timeout);
+        }
+        if (log.isDebugEnabled()) {
+          log.debug("get: {}.{}, {}", idBytes, keyBytes, value);
         }
         return null;
       }
@@ -117,8 +120,13 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Object doInRedis(RedisConnection conn) {
-        byte[] result = conn.hGet(id.getBytes(), key.toString().getBytes());
-        return SerializeUtil.unserialize(result);
+        final byte[] idBytes = id.getBytes();
+        final byte[] keyBytes = key.toString().getBytes();
+        Object result = SerializeUtil.unserialize(conn.hGet(idBytes, keyBytes));
+        if (log.isDebugEnabled()) {
+          log.debug("get: {}.{}, {}", idBytes, keyBytes, result);
+        }
+        return result;
       }
     });
   }
@@ -129,7 +137,13 @@ public final class RedisCaches implements Cache {
 
       @Override
       public Long doInRedis(RedisConnection conn) {
-        return conn.hDel(id.getBytes(), key.toString().getBytes());
+        final byte[] idBytes = id.getBytes();
+        final byte[] keyBytes = key.toString().getBytes();
+        Long l = conn.hDel(idBytes, keyBytes);
+        if (log.isDebugEnabled()) {
+          log.debug("del: {}.{}, {}", idBytes, keyBytes, l);
+        }        
+        return l;
       }
     });
   }
@@ -156,7 +170,7 @@ public final class RedisCaches implements Cache {
   public String toString() {
     return "Redis {" + id + "}";
   }
-  
+
   // properties
 
   public void setTimeout(Integer timeout) {
