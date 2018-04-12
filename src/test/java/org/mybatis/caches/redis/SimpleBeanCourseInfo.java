@@ -16,7 +16,6 @@
 package org.mybatis.caches.redis;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 public class SimpleBeanCourseInfo implements Serializable {
   /**
