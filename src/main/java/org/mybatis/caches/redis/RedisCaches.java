@@ -63,7 +63,6 @@ public final class RedisCaches implements Cache {
     }
     this.id = id;
     this.idBytes = id.getBytes();
-    clear();
   }
 
   private <T> T execute(RedisCallback<T> callback) {
