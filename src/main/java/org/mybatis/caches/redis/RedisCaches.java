@@ -64,7 +64,7 @@ public final class RedisCaches implements Cache {
     this.id = id;
     this.idBytes = id.getBytes();
     if (log.isDebugEnabled()) {
-      log.debug("{} cached", id);
+      log.debug("cache: {}", id);
     }
   }
 
